@@ -41,8 +41,8 @@
 			// Add, remove or change the key values to change the hierarchy. 
       var nested_data = d3.nest()
        				.key(function(d)  { return d.Agency_name; })
-       				.key(function(d)  { return d.Project_Description; })
-              .key(function(d)  { return d.Project_Name; })
+       				.key(function(d)  { return d.Project_Name; })
+              .key(function(d)  { return d.Project_Description; })
 				      .entries(csv_data);
 			
 			// Creat the root node for the treemap
