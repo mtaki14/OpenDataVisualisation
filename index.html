@@ -42,7 +42,7 @@
       var nested_data = d3.nest()
        				.key(function(d)  { return d.Agency Name; })
        				.key(function(d)  { return d.Start Year; })
-              		.key(function(d)  { return d.Project Name; })
+              .key(function(d)  { return d.Project Description; })
 				      .entries(csv_data);
 			
 			// Creat the root node for the treemap
