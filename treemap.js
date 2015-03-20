@@ -22,7 +22,7 @@ var y = d3.scale.linear()
 	.range([0, height]);
 
 var treemap = d3.layout.treemap()
-	.children(function(d, depth) { return d.children; })
+	.children(function(d, depth) { return d.children })
 	.sort(function(a, b) { return a.value - b.value; })
 	.ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
 	.round(false);
