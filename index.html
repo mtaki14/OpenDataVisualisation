@@ -1,133 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
+<meta charset="utf-8">
+<title>Zoomable Treemap</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script src="http://d3js.org/d3.v2.js"></script>
+<script src="http://code.jquery.com/jquery-1.7.1.js"></script>
 
-    <title>Collapsible Tree Example</title>
+<p id="chart">
+<p id="rawdata">
 
-    <style>
-
-	.node circle {
-	  fill: #fff;
-	  stroke: steelblue;
-	  stroke-width: 3px;
-	}
-
-	.node text { font: 12px sans-serif; }
-
-	.link {
-	  fill: none;
-	  stroke: #ccc;
-	  stroke-width: 2px;
-	}
-	
-    </style>
-
-  </head>
-
-  <body>
-
-<!-- load the d3.js library -->	
-<script src="http://d3js.org/d3.v3.min.js"></script>
-	
+<script src="treemap.js"></script>
 <script>
-
-// ************** Generate the tree diagram	 *****************
-var margin = {top: 20, right: 120, bottom: 20, left: 120},
-	width = 960 - margin.right - margin.left,
-	height = 500 - margin.top - margin.bottom;
-	
-var i = 0;
-
-var tree = d3.layout.tree()
-	.size([height, width]);
-
-var diagonal = d3.svg.diagonal()
-	.projection(function(d) { return [d.y, d.x]; });
-
-var svg = d3.select("body").append("svg")
-	.attr("width", width + margin.right + margin.left)
-	.attr("height", height + margin.top + margin.bottom)
-  .append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-// load the external data
-d3.csv("data(final).csv", function(error, data) {
-
-// *********** Convert flat data into a nice tree ***************
-// create a name: node map
-var dataMap = data.reduce(function(map, node) {
-	map[node.name] = node;
-	return map;
-}, {});
-
-// create the tree array
-var treeData = [];
-data.forEach(function(node) {
-	// add to parent
-	var parent = dataMap[node.parent];
-	if (parent) {
-		// create child array if it doesn't exist
-		(parent.children || (parent.children = []))
-			// add node to child array
-			.push(node);
-	} else {
-		// parent is null or missing
-		treeData.push(node);
+	function reSortRoot(root,value_key) {
+		//console.log("Calling");
+		for (var key in root) {
+			if (key == "key") {
+				root.name = root.key;
+				delete root.key;
+			}
+			if (key == "values") {
+				root.children = [];
+				for (item in root.values) {
+					root.children.push(reSortRoot(root.values[item],value_key));
+				}
+				delete root.values;
+			}
+			if (key == value_key) {
+				root.value = parseFloat(root[value_key]);
+				delete root[value_key];
+			}
+		}
+		return root;
 	}
-});
 
-  root = treeData[0];
-  update(root);
-});
+	$( document ).ready(function() {
+		// You can comment out the whole csv section if you just have a JSON file.
+    // loadJSONFile('data/portaldata.json');
 
-function update(source) {
+    	d3.csv("UK_Home_Office_Air_Travel_Data_2011.csv", function(csv_data){
 
-  // Compute the new tree layout.
-  var nodes = tree.nodes(root).reverse(),
-	  links = tree.links(nodes);
+			// Add, remove or change the key values to change the hierarchy. 
+      var nested_data = d3.nest()
+       				.key(function(d)  { return d.Destination; })
+       				.key(function(d)  { return d.Supplier_name; })
+              .key(function(d)  { return d.Ticket_class_description; })
+				      .entries(csv_data);
+			
+			// Creat the root node for the treemap
+			var root = {};
+			
+			// Add the data to the tree
+			root.key = "Data";
+			root.values = nested_data;
+		
+			// Change the key names and children values from .next and add values for a chosen column to define the size of the blocks
+			root = reSortRoot(root,"Paid_fare");
+			
+			// DEBUG
+// 			$("#rawdata").html(JSON.stringify(root));
+			
+			loadData(root);
+			
+		});
 
-  // Normalize for fixed-depth.
-  nodes.forEach(function(d) { d.y = d.depth * 180; });
 
-  // Declare the nodesâ€¦
-  var node = svg.selectAll("g.node")
-	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
-
-  // Enter the nodes.
-  var nodeEnter = node.enter().append("g")
-	  .attr("class", "node")
-	  .attr("transform", function(d) { 
-		  return "translate(" + d.y + "," + d.x + ")"; });
-
-  nodeEnter.append("circle")
-	  .attr("r", 10)
-	  .style("fill", "#fff");
-
-  nodeEnter.append("text")
-	  .attr("x", function(d) { 
-		  return d.children || d._children ? -13 : 13; })
-	  .attr("dy", ".35em")
-	  .attr("text-anchor", function(d) { 
-		  return d.children || d._children ? "end" : "start"; })
-	  .text(function(d) { return d.name; })
-	  .style("fill-opacity", 1);
-
-  // Declare the linksâ€¦
-  var link = svg.selectAll("path.link")
-	  .data(links, function(d) { return d.target.id; });
-
-  // Enter the links.
-  link.enter().insert("path", "g")
-	  .attr("class", "link")
-	  .attr("d", diagonal);
-
-}
-
+	});
 </script>
-
-
-<iframe width="1024" height="768" frameborder="0" seamless="seamless" scrolling="no" src="https://plot.ly/~mtaki14/53.embed?width=640&height=480" ></iframe>
-	
-  </body>
-</html>
