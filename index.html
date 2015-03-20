@@ -41,7 +41,7 @@
 			// Add, remove or change the key values to change the hierarchy. 
       var nested_data = d3.nest()
        				.key(function(d)  { return d.Agency_Name; })
-       				.key(function(d)  { return d.Start_Year; })
+       				.key(function(d)  { return d.Project_Description; })
               .key(function(d)  { return d.Project_Name; })
 				      .entries(csv_data);
 			
